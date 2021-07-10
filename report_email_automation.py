@@ -17,11 +17,11 @@ from pathlib import Path
 start_time = datetime.datetime.now().time().strftime('%H:%M:%S')
 start = datetime.datetime.strptime(start_time, '%H:%M:%S')
 
-# Retrive Reporting Email List
+# Step 1: Retrive Reporting Email List
 # Create the MSSQL connection with python
-conn = pyodbc.connect('Driver={SQL Server};'
-                      'Server=Server Name;'
-                      'Database=Database;'
+conn = pyodbc.connect('Driver = {SQL Server};'
+                      'Server = Server Name;'
+                      'Database = Database;'
                       'Trusted_Connection=yes;')
 
 # Set the cursor for conn
@@ -59,13 +59,13 @@ combined = pd.merge(email_list, att_df, on='Report_Name', how='left')
 combined_bi, combined_csk = combined[(mask:=combined['Report_Name'].str.contains("BACKORDER"))].copy().reset_index(drop=True), combined[~mask].copy().reset_index(drop=True)
 
 
-## Retrive Daily Report
+# Step 2: Retrive Daily Report
 
 # Create the MSSQL connection with python
-conn = pyodbc.connect('Driver={SQL Server};'
-                      'Server=Server Name;'
-                      'Database=Database;'
-                      'Trusted_Connection=yes;')
+conn = pyodbc.connect('Driver = {SQL Server};'
+                      'Server = Server Name;'
+                      'Database = Database;'
+                      'Trusted_Connection = yes;')
 
 # Set the cursor for conn
 cursor = conn.cursor()
@@ -87,9 +87,9 @@ for ind in range(len(combined_bi)):
         
     # Specify an ExcelWriter object to write to more than one sheet in the workbook
     with pd.ExcelWriter(write_path) as writer:
-        report_inv.to_excel(writer, sheet_name='Invoice Report', index=False)
-        report_oo.to_excel(writer, sheet_name='Open Orders', index=False)        
-        report_pk.to_excel(writer, sheet_name='In Pick Report', index=False)
+        report_inv.to_excel(writer, sheet_name = 'Invoice Report', index = False)
+        report_oo.to_excel(writer, sheet_name = 'Open Orders', index = False)        
+        report_pk.to_excel(writer, sheet_name = 'In Pick Report', index = False)
 
 # Generate CS CHECK Report
 for ind in range(len(combined_csk)):
@@ -104,7 +104,7 @@ for ind in range(len(combined_csk)):
     
     # Specify an ExcelWriter object to write to more than one sheet in the workbook
     with pd.ExcelWriter(write_path) as writer:  
-        report_csk.to_excel(writer, sheet_name='CS Check Report', index=False)
+        report_csk.to_excel(writer, sheet_name = 'CS Check Report', index = False)
         
 
 cursor.close()
@@ -112,7 +112,7 @@ del cursor
 conn.close()
 
 
-## Email reports
+# Step 3: Email reports
 class EmailsSender:
     def __init__(self):
         self.outlook = win32.Dispatch('Outlook.Application')
@@ -137,7 +137,7 @@ class EmailsSender:
                         <p>For any question please reach out to contacts@email.com</p>                    
                         '''.format(receiver_name)
         
-        with open(attachment_path, 'r', encoding='utf8', errors='ignore') as my_attch:
+        with open(attachment_path, 'r', encoding = 'utf8', errors = 'ignore') as my_attch:
             myfile = my_attch.read()
         mail.Attachments.Add(attachment_path)
         
@@ -171,6 +171,7 @@ for f in attachments:
     shutil.move(f[1], archive_dir)
     
 
+# Stop timer and show elapsed
 end_time = datetime.datetime.now().time().strftime('%H:%M:%S')
 end = datetime.datetime.strptime(end_time,'%H:%M:%S')
 elapsed = end - start
